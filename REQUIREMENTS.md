@@ -28,20 +28,21 @@ Browser vendors control sidebar features and can remove them at will (Edge remov
 - [ ] "Capture tab" action: sidebar JS reads active tab's URL + title via `chrome.tabs.query()`, posts into the active iframe via `postMessage`
 - [ ] Hosted apps (metabrowse, notehub) can request tab info without clipboard or drag-and-drop
 
+### Panel Visibility
+
+- The side panel is toggled open/closed via Chrome's extension icon (or keyboard shortcut)
+- When closed, the panel is fully hidden and the browser content reclaims all horizontal space
+- When open, the panel shows the toolbar + viewport; Chrome's built-in drag handle controls panel width
+- No persistent toolbar strip when closed — this is a Chrome sidePanel API constraint
+
 ### Toolbar Behavior
 
 - Favicon buttons with text tooltips showing page title
-- Clicking the active site button **collapses** the viewport (hides all iframes, leaving only the button strip)
-- Clicking a different button while collapsed **expands + switches** to that site
-- Clicking a different button while expanded **switches** without collapsing
+- Clicking a site button switches the viewport to that site's iframe
+- Clicking the **already-active** site button resets its iframe back to the configured URL (navigate home)
+    - This is a key differentiator: unlike browser tabs, you can never get permanently lost — one click returns to the starting point
 - Dedicated "capture tab" button in the toolbar (reads active browser tab URL + title, posts to active iframe)
 - Gear icon at the bottom of the toolbar opens the settings editor in the viewport area
-
-### Viewport
-
-- Resizable by dragging
-- Minimum width threshold — shrinking past it collapses the viewport
-- No maximum width constraint
 
 ### Iframe Lifecycle
 

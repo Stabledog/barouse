@@ -13,8 +13,13 @@ function wireToolbar() {
     onSiteClick(i) {
       const site = config.sites[i];
       if (i === currentActive) {
-        // Already active — navigate home
-        viewport.resetSite(site.url);
+        if (viewport.isErrored(site.url)) {
+          // Retry loading after error
+          viewport.retrySite(site.url);
+        } else {
+          // Already active — navigate home
+          viewport.resetSite(site.url);
+        }
       } else {
         // Switch to this site
         viewport.showSite(site.url);

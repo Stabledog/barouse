@@ -148,3 +148,67 @@ body {
 #settings-error.hidden {
   display: none;
 }
+
+/* --- Error Panel --- */
+
+#error-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e1e1e;
+  z-index: 4;
+}
+
+#error-panel.hidden {
+  display: none;
+}
+
+.error-panel-content {
+  text-align: center;
+  color: #ccc;
+  max-width: 260px;
+  padding: 20px;
+}
+
+.error-panel-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+.error-panel-content h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 8px;
+}
+
+.error-panel-content p {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.error-panel-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.error-panel-actions button {
+  padding: 5px 14px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #3a3a3a;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.error-panel-actions button:hover {
+  background: #4a4a4a;
+  border-color: #777;
+}

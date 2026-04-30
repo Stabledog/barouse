@@ -30,7 +30,8 @@ jobs:
 
           # Extension files (explicit list)
           for f in manifest.json background.js sidebar.html sidebar.css sidebar.js \
-                   config.js toolbar.js viewport.js dnr.js capture.js settings-editor.js; do
+                   config.js toolbar.js viewport.js dnr.js capture.js settings-editor.js \
+                   options.html options.js github-sync.js; do
             cp "$f" _site/extension/
           done
           cp icons/*.png _site/extension/icons/

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Barouse Options</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 480px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.6;
+      color: #cdd6f4;
+      background: #1e1e2e;
+    }
+    h1 { color: #cba6f7; margin-bottom: 0.25rem; }
+    p.subtitle { color: #a6adc8; margin-top: 0; }
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+      color: #bac2de;
+      font-size: 0.9em;
+    }
+    input {
+      width: 100%;
+      padding: 0.5em;
+      background: #313244;
+      border: 1px solid #45475a;
+      border-radius: 4px;
+      color: #cdd6f4;
+      font-size: 0.95em;
+      box-sizing: border-box;
+    }
+    input:focus {
+      outline: none;
+      border-color: #89b4fa;
+    }
+    button {
+      margin-top: 1.5rem;
+      padding: 0.5em 1.5em;
+      background: #313244;
+      border: 1px solid #45475a;
+      border-radius: 4px;
+      color: #cdd6f4;
+      cursor: pointer;
+      font-size: 0.95em;
+    }
+    button:hover { border-color: #89b4fa; }
+    #status {
+      margin-top: 1rem;
+      font-size: 0.9em;
+    }
+    #status.ok { color: #a6e3a1; }
+    #status.err { color: #f38ba8; }
+  </style>
+</head>
+<body>
+  <h1>Barouse</h1>
+  <p class="subtitle">GitHub sync configuration</p>
+
+  <form id="creds-form">
+    <label for="owner">Owner (org or username)</label>
+    <input id="owner" type="text" placeholder="myorg" required>
+
+    <label for="repo">Repository</label>
+    <input id="repo" type="text" placeholder="my-dotfiles" required>
+
+    <label for="token">Personal Access Token</label>
+    <input id="token" type="password" placeholder="ghp_..." required>
+
+    <button type="submit">Save</button>
+  </form>
+
+  <div id="status"></div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

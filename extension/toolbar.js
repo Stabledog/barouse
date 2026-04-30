@@ -13,20 +13,27 @@ export function renderToolbar(config, callbacks) {
 
     const img = document.createElement("img");
     const siteUrl = new URL(site.url);
-    const domain = siteUrl.hostname;
-    // Try direct favicon from the site's path first (works for internal/gh-pages sites
-    // where Google's favicon service can't reach the host). Treat site.url as a
-    // directory base by ensuring a trailing slash, then append favicon.ico.
+    // Try direct favicon from the site's path, then origin root, then letter.
+    // Google's favicon service is intentionally skipped: it always returns a valid
+    // image (grey globe) for unknown/internal domains, so onerror never fires and
+    // the grey placeholder gets stuck. Direct fetches correctly trigger onerror on
+    // CORP blocks or 404s, letting the letter fallback work reliably.
     const pathBase = siteUrl.pathname.replace(/\/?$/, "/");
-    img.src = `${siteUrl.origin}${pathBase}favicon.ico`;
+    const pathFavicon = `${siteUrl.origin}${pathBase}favicon.ico`;
+    const originFavicon = `${siteUrl.origin}/favicon.ico`;
+    const showLetter = () => {
+      img.remove();
+      btn.textContent = site.label.charAt(0).toUpperCase();
+    };
+    img.src = pathFavicon;
     img.alt = site.label;
     img.onerror = () => {
-      // Fall back to Google's favicon service (works for well-known public domains)
-      img.onerror = () => {
-        img.remove();
-        btn.textContent = site.label.charAt(0).toUpperCase();
-      };
-      img.src = `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
+      if (img.src !== originFavicon) {
+        img.onerror = () => showLetter();
+        img.src = originFavicon;
+      } else {
+        showLetter();
+      }
     };
     btn.appendChild(img);
 

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barouse</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 720px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.6;
+      color: #cdd6f4;
+      background: #1e1e2e;
+    }
+    h1, h2 { color: #cba6f7; }
+    a { color: #89b4fa; }
+    code {
+      background: #313244;
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #313244;
+      padding: 1em;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    pre code { background: none; padding: 0; }
+    .version { color: #a6e3a1; font-weight: bold; }
+    .downloads {
+      display: flex;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .downloads a {
+      display: inline-block;
+      padding: 0.6em 1.2em;
+      background: #313244;
+      border-radius: 6px;
+      text-decoration: none;
+      border: 1px solid #45475a;
+    }
+    .downloads a:hover { border-color: #89b4fa; }
+  </style>
+</head>
+<body>
+  <h1>Barouse</h1>
+  <p>Browser-owned sidebar hosting arbitrary sites in iframes.</p>
+  <p>Version: <span class="version">1.1.0</span></p>
+
+  <div class="downloads">
+    <a href="barouse.zip">Download barouse.zip</a>
+    <a href="barouse-update">barouse-update script</a>
+  </div>
+
+  <h2>Install via git clone (recommended)</h2>
+  <p>Best for desktops where git is available. Updates with <code>git pull</code>.</p>
+  <pre><code>git clone -b gh-pages --single-branch https://github.com/Stabledog/barouse.git ~/.local/share/barouse</code></pre>
+  <p>Then load in Chrome:</p>
+  <ol>
+    <li>Open <code>chrome://extensions</code></li>
+    <li>Enable <strong>Developer mode</strong></li>
+    <li>Click <strong>Load unpacked</strong></li>
+    <li>Select <code>~/.local/share/barouse/extension</code></li>
+  </ol>
+  <p>To update:</p>
+  <pre><code>cd ~/.local/share/barouse && git pull</code></pre>
+  <p>Then click the reload button on <code>chrome://extensions</code>.</p>
+
+  <h2>Install via script (no git required)</h2>
+  <p>For machines without git (conference rooms, shared workstations).</p>
+  <pre><code>curl -fsSL https://stabledog.github.io/barouse/barouse-update | bash</code></pre>
+  <p>This downloads and extracts the extension to <code>~/.local/share/barouse</code>.
+     Set <code>BAROUSE_DIR</code> to override the install location.</p>
+  <p>Then load <code>~/.local/share/barouse</code> as an unpacked extension in Chrome.</p>
+  <p>Re-run the same command to update.</p>
+</body>
+</html>

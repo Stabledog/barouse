@@ -1,0 +1,214 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: #1e1e1e;
+}
+
+body {
+  display: flex;
+  flex-direction: row;
+}
+
+/* --- Viewport --- */
+
+#viewport {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+#viewport iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: none;
+}
+
+#viewport iframe.active {
+  display: block;
+}
+
+/* --- Toolbar --- */
+
+#toolbar {
+  width: 32px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 0;
+  gap: 4px;
+  background: #2d2d2d;
+  border-left: 1px solid #444;
+}
+
+#toolbar button {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #3a3a3a;
+  color: #ccc;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+#toolbar button img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+#toolbar button:hover {
+  background: #4a4a4a;
+  border-color: #777;
+}
+
+#toolbar button.active {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+  color: #fff;
+}
+
+#toolbar .gear-btn {
+  margin-top: auto;
+}
+
+/* --- Settings Editor --- */
+
+#settings-editor {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #1e1e1e;
+  z-index: 5;
+}
+
+#settings-editor.hidden {
+  display: none;
+}
+
+#settings-textarea {
+  flex: 1;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border: none;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+}
+
+#settings-controls {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #2d2d2d;
+}
+
+#settings-controls button {
+  padding: 4px 12px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #3a3a3a;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+#settings-controls button:hover {
+  background: #4a4a4a;
+  border-color: #777;
+}
+
+#settings-error {
+  padding: 8px 12px;
+  color: #ef4444;
+  font-size: 12px;
+  background: #2d2d2d;
+}
+
+#settings-error.hidden {
+  display: none;
+}
+
+/* --- Error Panel --- */
+
+#error-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e1e1e;
+  z-index: 4;
+}
+
+#error-panel.hidden {
+  display: none;
+}
+
+.error-panel-content {
+  text-align: center;
+  color: #ccc;
+  max-width: 260px;
+  padding: 20px;
+}
+
+.error-panel-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+.error-panel-content h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 8px;
+}
+
+.error-panel-content p {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.error-panel-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.error-panel-actions button {
+  padding: 5px 14px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #3a3a3a;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.error-panel-actions button:hover {
+  background: #4a4a4a;
+  border-color: #777;
+}

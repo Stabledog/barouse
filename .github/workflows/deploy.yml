@@ -1,0 +1,62 @@
+name: Deploy Barouse
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*.js'
+      - '*.html'
+      - '*.css'
+      - 'manifest.json'
+      - 'icons/**'
+      - 'site/**'
+      - '.github/workflows/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Read version
+        id: version
+        run: echo "version=$(jq -r .version manifest.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Assemble _site
+        run: |
+          mkdir -p _site/extension/icons
+
+          # Extension files (explicit list)
+          for f in manifest.json background.js sidebar.html sidebar.css sidebar.js \
+                   config.js toolbar.js viewport.js dnr.js capture.js settings-editor.js; do
+            cp "$f" _site/extension/
+          done
+          cp icons/*.png _site/extension/icons/
+
+          # Zip the extension
+          cd _site/extension
+          zip -r ../barouse.zip .
+          cd ../..
+
+          # Landing page — inject version
+          sed "s/{{VERSION}}/${{ steps.version.outputs.version }}/g" \
+            site/index.html > _site/index.html
+
+          # Update script
+          cp site/barouse-update _site/barouse-update
+
+      - name: Deploy to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          npx gh-pages -d _site

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# barouse-update — download and install/update the Barouse extension
+# Usage: curl -fsSL https://stabledog.github.io/barouse/barouse-update | bash
+set -euo pipefail
+
+BAROUSE_URL="https://stabledog.github.io/barouse/barouse.zip"
+BAROUSE_DIR="${BAROUSE_DIR:-${HOME}/.local/share/barouse}"
+
+mkdir -p "$BAROUSE_DIR"
+
+tmpzip=$(mktemp /tmp/barouse-XXXXXX.zip)
+trap 'rm -f "$tmpzip"' EXIT
+
+echo "Downloading barouse.zip..."
+curl -fsSL -o "$tmpzip" "$BAROUSE_URL"
+
+echo "Extracting to ${BAROUSE_DIR}..."
+unzip -o -q "$tmpzip" -d "$BAROUSE_DIR"
+
+version=$(jq -r .version "${BAROUSE_DIR}/manifest.json" 2>/dev/null || echo "unknown")
+echo ""
+echo "Barouse v${version} installed to ${BAROUSE_DIR}"
+echo ""
+echo "To load in Chrome:"
+echo "  1. Open chrome://extensions"
+echo "  2. Enable Developer mode"
+echo "  3. Click 'Load unpacked'"
+echo "  4. Select: ${BAROUSE_DIR}"
+echo ""
+echo "If already loaded, click the reload button on chrome://extensions."

@@ -57,7 +57,9 @@ jobs:
           git checkout -b gh-pages
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add origin https://git:${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          # Commit on top of existing gh-pages so consumers can git pull
+          git fetch origin gh-pages && git reset --soft origin/gh-pages || true
           git add -A
           git commit -m "Deploy v${{ steps.version.outputs.version }}"
-          git remote add origin https://git:${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git push -f origin gh-pages
+          git push origin gh-pages

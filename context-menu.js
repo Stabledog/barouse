@@ -19,13 +19,17 @@ export function initContextMenu(getActiveUrl) {
     menuEl.classList.remove("hidden");
   });
 
-  document.addEventListener("click", () => {
+  function hideMenu() {
     menuEl.classList.add("hidden");
+  }
+
+  document.addEventListener("click", hideMenu);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") hideMenu();
   });
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") menuEl.classList.add("hidden");
-  });
+  // Close when mouse leaves the menu — the user is done with it
+  menuEl.addEventListener("mouseleave", hideMenu);
 
   launchTabItem.addEventListener("click", (e) => {
     e.stopPropagation();

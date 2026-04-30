@@ -1,11 +1,5 @@
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === "set-title") {
-    chrome.sidePanel.setTitle({ title: msg.title });
-  }
-});
-
 // Detect HTTP errors (4xx/5xx) on sub_frame requests and notify the sidebar.
 // This catches sites like Google Drive that return 403 when loaded in an iframe
 // (server-side Sec-Fetch-Dest check that extensions cannot bypass).

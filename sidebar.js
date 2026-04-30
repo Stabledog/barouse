@@ -26,7 +26,6 @@ function wireToolbar() {
         viewport.showSite(site.url);
         setActiveButton(i);
         currentActive = i;
-        chrome.runtime.sendMessage({ type: "set-title", title: site.label });
       }
     },
 
@@ -39,7 +38,6 @@ function wireToolbar() {
       viewport.showSettings();
       setActiveButton(-1);
       currentActive = -1;
-      chrome.runtime.sendMessage({ type: "set-title", title: "Barouse" });
 
       openSettingsEditor(config, async (newConfig) => {
         // Save

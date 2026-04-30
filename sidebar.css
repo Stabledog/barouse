@@ -212,3 +212,47 @@ body {
   background: #4a4a4a;
   border-color: #777;
 }
+
+/* --- Context Menu --- */
+
+#context-menu {
+  position: fixed;
+  background: #2d2d2d;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 2px 0;
+  z-index: 1000;
+  min-width: 160px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+#context-menu.hidden {
+  display: none;
+}
+
+#context-menu ul {
+  list-style: none;
+}
+
+#context-menu li {
+  padding: 6px 16px;
+  color: #ccc;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#context-menu li:hover {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+#context-menu li.disabled {
+  color: #555;
+  cursor: default;
+}
+
+#context-menu li.disabled:hover {
+  background: none;
+  color: #555;
+}

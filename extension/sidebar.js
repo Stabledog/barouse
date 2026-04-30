@@ -4,6 +4,7 @@ import * as viewport from "./viewport.js";
 import { syncDnrRules } from "./dnr.js";
 import { captureTab } from "./capture.js";
 import { openSettingsEditor, closeSettingsEditor } from "./settings-editor.js";
+import { initContextMenu } from "./context-menu.js";
 
 let config = null;
 let currentActive = -1;
@@ -61,6 +62,7 @@ async function init() {
   config = await loadConfig();
   wireToolbar();
   await syncDnrRules(config.sites);
+  initContextMenu(() => viewport.getActiveUrl());
 }
 
 init();

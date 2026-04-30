@@ -239,6 +239,88 @@ body {
   border-color: #777;
 }
 
+/* --- Add Site Dialog --- */
+
+#add-site-dialog {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 30, 30, 0.95);
+  z-index: 6;
+}
+
+#add-site-dialog.hidden {
+  display: none;
+}
+
+.add-site-content {
+  text-align: center;
+  color: #ccc;
+  max-width: 280px;
+  padding: 20px;
+}
+
+.add-site-content h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 12px;
+}
+
+.add-site-content p {
+  font-size: 11px;
+  color: #888;
+  word-break: break-all;
+  margin-bottom: 12px;
+}
+
+.add-site-content label {
+  display: block;
+  font-size: 12px;
+  color: #aaa;
+  text-align: left;
+  margin-bottom: 4px;
+}
+
+.add-site-content input {
+  width: 100%;
+  padding: 6px 8px;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  margin-bottom: 16px;
+}
+
+.add-site-content input:focus {
+  border-color: #0ea5e9;
+}
+
+.add-site-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.add-site-actions button {
+  padding: 5px 14px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #3a3a3a;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.add-site-actions button:hover {
+  background: #4a4a4a;
+  border-color: #777;
+}
+
 /* --- Context Menu --- */
 
 #context-menu {

@@ -85,6 +85,32 @@ body {
   color: #fff;
 }
 
+#toolbar button[data-tooltip] {
+  position: relative;
+}
+
+#toolbar button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #222;
+  color: #eee;
+  font-size: 13px;
+  font-weight: normal;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+#toolbar button[data-tooltip]:hover::after {
+  opacity: 1;
+}
+
 #toolbar .gear-btn {
   margin-top: auto;
 }

@@ -8,7 +8,7 @@ export function renderToolbar(config, callbacks) {
   // Site buttons
   config.sites.forEach((site, i) => {
     const btn = document.createElement("button");
-    btn.title = site.label;
+    btn.dataset.tooltip = site.label;
     btn.dataset.index = i;
 
     const img = document.createElement("img");
@@ -44,7 +44,7 @@ export function renderToolbar(config, callbacks) {
 
   // Capture-tab button
   const captureBtn = document.createElement("button");
-  captureBtn.title = "Capture tab";
+  captureBtn.dataset.tooltip = "Capture tab";
   captureBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
     <path d="M6 3H3v10h10v-3"/>
     <path d="M9 2h5v5"/>
@@ -56,7 +56,7 @@ export function renderToolbar(config, callbacks) {
   // Gear button (pinned to bottom)
   const gearBtn = document.createElement("button");
   gearBtn.className = "gear-btn";
-  gearBtn.title = "Settings";
+  gearBtn.dataset.tooltip = "Settings";
   gearBtn.textContent = "\u2699";
   gearBtn.addEventListener("click", () => callbacks.onSettingsClick());
   toolbarEl.appendChild(gearBtn);

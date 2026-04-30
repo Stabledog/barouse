@@ -28,13 +28,9 @@ jobs:
         run: |
           mkdir -p _site/extension/icons
 
-          # Extension files (explicit list)
-          for f in manifest.json background.js sidebar.html sidebar.css sidebar.js \
-                   config.js toolbar.js viewport.js dnr.js capture.js settings-editor.js \
-                   options.html options.js github-sync.js; do
-            cp "$f" _site/extension/
-          done
-          cp icons/*.png _site/extension/icons/
+          # Extension files — derived from git, no hardcoded list
+          git ls-files -- '*.js' '*.html' '*.css' 'manifest.json' | xargs -I{} cp {} _site/extension/
+          git ls-files -- 'icons/*.png' | xargs -I{} cp {} _site/extension/icons/
 
           # Zip the extension
           cd _site/extension

@@ -20,11 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
       - name: Read version
         id: version
         run: echo "version=$(jq -r .version manifest.json)" >> "$GITHUB_OUTPUT"
@@ -56,7 +51,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cd _site
+          git init
+          git checkout -b gh-pages
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          npx gh-pages -d _site
+          git add -A
+          git commit -m "Deploy v${{ steps.version.outputs.version }}"
+          git remote add origin https://git:${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git push -f origin gh-pages

@@ -12,6 +12,7 @@ export function initContextMenu(cb) {
     zoomIn:    document.getElementById("ctx-zoom-in"),
     zoomOut:   document.getElementById("ctx-zoom-out"),
     zoomReset: document.getElementById("ctx-zoom-reset"),
+    copyUrl:   document.getElementById("ctx-copy-url"),
     launchTab: document.getElementById("ctx-launch-tab"),
   };
 
@@ -29,6 +30,7 @@ export function initContextMenu(cb) {
   wireItem(items.zoomIn,    () => callbacks.onZoomIn());
   wireItem(items.zoomOut,   () => callbacks.onZoomOut());
   wireItem(items.zoomReset, () => callbacks.onZoomReset());
+  wireItem(items.copyUrl,   () => callbacks.onCopyUrl());
   wireItem(items.launchTab, () => callbacks.onLaunchTab());
 
   document.addEventListener("contextmenu", (e) => {
@@ -40,6 +42,7 @@ export function initContextMenu(cb) {
     items.reload.classList.toggle("disabled", !hasActive);
     items.back.classList.toggle("disabled", !hasActive);
     items.forward.classList.toggle("disabled", !hasActive);
+    items.copyUrl.classList.toggle("disabled", !hasActive);
     items.launchTab.classList.toggle("disabled", !hasActive);
 
     // Zoom items require an active site too

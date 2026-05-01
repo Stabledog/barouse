@@ -175,6 +175,7 @@ export function showSite(url) {
   // Lazy-create iframe on first visit
   if (!iframes.has(url)) {
     const iframe = document.createElement("iframe");
+    iframe.allow = "clipboard-read; clipboard-write";
     iframe.addEventListener("load", () => {
       onIframeLoad(iframe, url);
       // Activate the content script in this iframe (enables zoom key forwarding).

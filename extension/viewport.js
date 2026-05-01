@@ -4,6 +4,7 @@ const errorPanelEl = document.getElementById("error-panel");
 const errorMessageEl = document.getElementById("error-panel-message");
 const errorOpenTabBtn = document.getElementById("error-open-tab");
 const errorRetryBtn = document.getElementById("error-retry");
+const landingPageEl = document.getElementById("landing-page");
 
 const iframes = new Map(); // url -> HTMLIFrameElement
 const loadTimestamps = new Map(); // url -> number[] (recent load times)
@@ -39,11 +40,12 @@ function showError(url, reason) {
       "This site cannot be displayed in Barouse. It has been opened in a new tab.";
   }
 
-  // Hide all iframes, show error panel
+  // Hide all iframes and landing, show error panel
   for (const frame of iframes.values()) {
     frame.classList.remove("active");
   }
   settingsEl.classList.add("hidden");
+  landingPageEl.classList.add("hidden");
   errorPanelEl.classList.remove("hidden");
   activeUrl = url;
 
@@ -154,14 +156,16 @@ export function showSite(url) {
       frame.classList.remove("active");
     }
     settingsEl.classList.add("hidden");
+    landingPageEl.classList.add("hidden");
     errorPanelEl.classList.remove("hidden");
     activeUrl = url;
     return null;
   }
 
-  // Hide settings editor and error panel
+  // Hide settings editor, error panel, and landing page
   settingsEl.classList.add("hidden");
   errorPanelEl.classList.add("hidden");
+  landingPageEl.classList.add("hidden");
 
   // Hide all iframes
   for (const frame of iframes.values()) {
@@ -229,17 +233,28 @@ export function isErrored(url) {
 }
 
 export function showSettings() {
-  // Hide all iframes and error panel
+  // Hide all iframes, error panel, and landing page
   for (const frame of iframes.values()) {
     frame.classList.remove("active");
   }
   errorPanelEl.classList.add("hidden");
+  landingPageEl.classList.add("hidden");
   activeUrl = null;
   settingsEl.classList.remove("hidden");
 }
 
 export function hideSettings() {
   settingsEl.classList.add("hidden");
+}
+
+export function showLanding() {
+  for (const frame of iframes.values()) {
+    frame.classList.remove("active");
+  }
+  settingsEl.classList.add("hidden");
+  errorPanelEl.classList.add("hidden");
+  landingPageEl.classList.remove("hidden");
+  activeUrl = null;
 }
 
 export function destroyAllIframes() {

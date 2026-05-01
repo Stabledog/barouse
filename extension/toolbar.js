@@ -53,7 +53,18 @@ export function renderToolbar(config, callbacks) {
   captureBtn.addEventListener("click", () => callbacks.onCaptureClick());
   toolbarEl.appendChild(captureBtn);
 
-  // Gear button (pinned to bottom)
+  // Home button (pinned to bottom with gear)
+  const homeBtn = document.createElement("button");
+  homeBtn.className = "home-btn";
+  homeBtn.dataset.tooltip = "Home";
+  homeBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+    <path d="M3 8l5-5 5 5"/>
+    <path d="M4 7v6h3v-3h2v3h3V7"/>
+  </svg>`;
+  homeBtn.addEventListener("click", () => callbacks.onHomeClick());
+  toolbarEl.appendChild(homeBtn);
+
+  // Gear button (follows home at bottom)
   const gearBtn = document.createElement("button");
   gearBtn.className = "gear-btn";
   gearBtn.dataset.tooltip = "Settings";

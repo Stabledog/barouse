@@ -111,8 +111,12 @@ body {
   opacity: 1;
 }
 
-#toolbar .gear-btn {
+#toolbar .home-btn {
   margin-top: auto;
+}
+
+#toolbar .gear-btn {
+  margin-top: 0;
 }
 
 /* --- Settings Editor --- */
@@ -402,4 +406,69 @@ body {
   border-top: 1px solid #444;
   cursor: default;
   pointer-events: none;
+}
+
+/* --- Landing Page --- */
+
+#landing-page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e1e1e;
+  z-index: 1;
+  overflow-y: auto;
+}
+
+#landing-page.hidden {
+  display: none;
+}
+
+.landing-content {
+  text-align: center;
+  color: #ccc;
+  max-width: 300px;
+  padding: 20px;
+}
+
+.landing-content h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 4px;
+}
+
+.landing-version {
+  font-size: 11px;
+  color: #a6e3a1;
+  margin-bottom: 20px;
+}
+
+#landing-sites {
+  text-align: left;
+}
+
+#landing-sites table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+#landing-sites th {
+  color: #aaa;
+  font-weight: 600;
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid #444;
+}
+
+#landing-sites td {
+  color: #ccc;
+  padding: 4px 8px;
+}
+
+#landing-sites td.landing-url {
+  color: #888;
+  font-size: 11px;
 }

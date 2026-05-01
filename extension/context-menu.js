@@ -1,5 +1,6 @@
 let menuEl = null;
 let callbacks = null;
+let targetSiteIndex = -1;
 
 export function initContextMenu(cb) {
   callbacks = cb;
@@ -14,6 +15,7 @@ export function initContextMenu(cb) {
     zoomReset: document.getElementById("ctx-zoom-reset"),
     copyUrl:   document.getElementById("ctx-copy-url"),
     launchTab: document.getElementById("ctx-launch-tab"),
+    removeSite: document.getElementById("ctx-remove-site"),
   };
 
   function wireItem(el, handler) {
@@ -32,11 +34,17 @@ export function initContextMenu(cb) {
   wireItem(items.zoomReset, () => callbacks.onZoomReset());
   wireItem(items.copyUrl,   () => callbacks.onCopyUrl());
   wireItem(items.launchTab, () => callbacks.onLaunchTab());
+  wireItem(items.removeSite, () => callbacks.onRemoveSite(targetSiteIndex));
 
   document.addEventListener("contextmenu", (e) => {
     e.preventDefault();
 
     const hasActive = !!callbacks.getActiveUrl();
+
+    // Detect if a site toolbar button was right-clicked
+    const siteBtn = e.target.closest('#toolbar button[data-index]');
+    targetSiteIndex = siteBtn ? parseInt(siteBtn.dataset.index, 10) : -1;
+    items.removeSite.classList.toggle("disabled", targetSiteIndex === -1);
 
     // Navigation items require an active site
     items.reload.classList.toggle("disabled", !hasActive);

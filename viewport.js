@@ -176,6 +176,7 @@ export function showSite(url) {
   if (!iframes.has(url)) {
     const iframe = document.createElement("iframe");
     iframe.allow = "clipboard-read; clipboard-write";
+    iframe.sandbox = "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads";
     iframe.addEventListener("load", () => {
       onIframeLoad(iframe, url);
       // Activate the content script in this iframe (enables zoom key forwarding).

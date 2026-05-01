@@ -9,6 +9,12 @@ import { initContextMenu } from "./context-menu.js";
 let config = null;
 let currentActive = -1;
 
+const ACTIVE_SITE_KEY = "barouse_active_site";
+
+function saveActiveSite(url) {
+  chrome.storage.local.set({ [ACTIVE_SITE_KEY]: url || null });
+}
+
 // --- Add Site Dialog ---
 
 const addSiteDialog = document.getElementById("add-site-dialog");
@@ -48,6 +54,9 @@ addSiteSaveBtn.addEventListener("click", async () => {
   wireToolbar();
   await syncDnrRules(config.sites);
   currentActive = -1;
+  saveActiveSite(null);
+  populateLandingSites(config.sites);
+  viewport.showLanding();
 });
 
 addSiteCancelBtn.addEventListener("click", hideAddSiteDialog);
@@ -76,6 +85,7 @@ function wireToolbar() {
         viewport.showSite(site.url);
         setActiveButton(i);
         currentActive = i;
+        saveActiveSite(site.url);
       }
     },
 
@@ -91,6 +101,7 @@ function wireToolbar() {
       viewport.showSettings();
       setActiveButton(-1);
       currentActive = -1;
+      saveActiveSite(null);
 
       openSettingsEditor(config, async (newConfig) => {
         // Save
@@ -102,11 +113,21 @@ function wireToolbar() {
         wireToolbar();
         await syncDnrRules(config.sites);
         currentActive = -1;
+        saveActiveSite(null);
+        populateLandingSites(config.sites);
+        viewport.showLanding();
       }, () => {
         // Cancel — return to previously active site or just hide editor
         closeSettingsEditor();
         viewport.hideSettings();
       });
+    },
+
+    onHomeClick() {
+      viewport.showLanding();
+      setActiveButton(-1);
+      currentActive = -1;
+      saveActiveSite(null);
     }
   });
 }
@@ -141,11 +162,57 @@ window.addEventListener("message", (event) => {
   }
 });
 
+function populateLandingSites(sites) {
+  const container = document.getElementById("landing-sites");
+  if (sites.length === 0) {
+    container.innerHTML = "<p>No sites configured. Click the gear icon to add sites.</p>";
+    return;
+  }
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  thead.innerHTML = "<tr><th>Label</th><th>URL</th></tr>";
+  table.appendChild(thead);
+  const tbody = document.createElement("tbody");
+  for (const site of sites) {
+    const tr = document.createElement("tr");
+    const tdLabel = document.createElement("td");
+    tdLabel.textContent = site.label;
+    const tdUrl = document.createElement("td");
+    tdUrl.className = "landing-url";
+    tdUrl.textContent = new URL(site.url).hostname;
+    tdUrl.title = site.url;
+    tr.appendChild(tdLabel);
+    tr.appendChild(tdUrl);
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  container.innerHTML = "";
+  container.appendChild(table);
+}
+
 async function init() {
   config = await loadConfig();
   await viewport.loadZoom();
+
+  // Populate landing page
+  document.querySelector(".landing-version").textContent =
+    `v${chrome.runtime.getManifest().version}`;
+  populateLandingSites(config.sites);
+
   wireToolbar();
   await syncDnrRules(config.sites);
+
+  // Restore last active site
+  const stored = await chrome.storage.local.get(ACTIVE_SITE_KEY);
+  const savedUrl = stored[ACTIVE_SITE_KEY];
+  if (savedUrl) {
+    const idx = config.sites.findIndex(s => s.url === savedUrl);
+    if (idx !== -1) {
+      viewport.showSite(config.sites[idx].url);
+      setActiveButton(idx);
+      currentActive = idx;
+    }
+  }
 
   initContextMenu({
     getActiveUrl: () => viewport.getActiveUrl(),

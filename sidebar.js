@@ -111,22 +111,33 @@ function wireToolbar() {
   });
 }
 
-// --- Keyboard shortcuts ---
+// --- Zoom shortcuts ---
 
-document.addEventListener("keydown", (e) => {
-  if (!e.ctrlKey && !e.metaKey) return;
+function handleZoomKey(key) {
   const url = viewport.getActiveUrl();
   if (!url) return;
-
-  if (e.key === "=" || e.key === "+") {
-    e.preventDefault();
+  if (key === "=" || key === "+") {
     viewport.setZoom(url, viewport.getZoom(url) + 0.1);
-  } else if (e.key === "-") {
-    e.preventDefault();
+  } else if (key === "-") {
     viewport.setZoom(url, viewport.getZoom(url) - 0.1);
-  } else if (e.key === "0") {
-    e.preventDefault();
+  } else if (key === "0") {
     viewport.setZoom(url, 1.0);
+  }
+}
+
+// Sidebar-focused shortcuts
+document.addEventListener("keydown", (e) => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  if (e.key === "=" || e.key === "+" || e.key === "-" || e.key === "0") {
+    e.preventDefault();
+    handleZoomKey(e.key);
+  }
+});
+
+// Forwarded from content script when iframe has focus
+window.addEventListener("message", (event) => {
+  if (event.data?.type === "barouse:zoom-key") {
+    handleZoomKey(event.data.key);
   }
 });
 
@@ -157,8 +168,12 @@ async function init() {
       const url = viewport.getActiveUrl();
       if (url) viewport.setZoom(url, 1.0);
     },
+    onCopyUrl() {
+      const url = viewport.getNavigatedUrl();
+      if (url) navigator.clipboard.writeText(url);
+    },
     onLaunchTab() {
-      const url = viewport.getActiveUrl();
+      const url = viewport.getNavigatedUrl();
       if (url) chrome.tabs.create({ url });
     },
   });

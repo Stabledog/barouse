@@ -9,6 +9,7 @@ const iframes = new Map(); // url -> HTMLIFrameElement
 const loadTimestamps = new Map(); // url -> number[] (recent load times)
 const errorUrls = new Map(); // url -> { reason }
 const zoomLevels = new Map(); // url -> number (zoom factor, default 1.0)
+const navigatedUrls = new Map(); // configuredUrl -> current location.href
 let activeUrl = null;
 
 const LOOP_THRESHOLD = 3;
@@ -128,6 +129,18 @@ chrome.runtime.onMessage.addListener((msg) => {
   }
 });
 
+// --- URL tracking from content script ---
+
+window.addEventListener("message", (event) => {
+  if (event.data?.type !== "barouse:url-update" || !event.data.url) return;
+  for (const [configuredUrl, iframe] of iframes) {
+    if (iframe.contentWindow === event.source) {
+      navigatedUrls.set(configuredUrl, event.data.url);
+      break;
+    }
+  }
+});
+
 // --- Public API ---
 
 export function showSite(url) {
@@ -158,7 +171,11 @@ export function showSite(url) {
   // Lazy-create iframe on first visit
   if (!iframes.has(url)) {
     const iframe = document.createElement("iframe");
-    iframe.addEventListener("load", () => onIframeLoad(iframe, url));
+    iframe.addEventListener("load", () => {
+      onIframeLoad(iframe, url);
+      // Activate the content script in this iframe (enables zoom key forwarding).
+      iframe.contentWindow.postMessage({ type: "barouse:init" }, "*");
+    });
     iframe.src = url;
     iframes.set(url, iframe);
     applyZoom(url);
@@ -182,6 +199,7 @@ export function retrySite(url) {
     iframes.delete(url);
   }
   loadTimestamps.delete(url);
+  navigatedUrls.delete(url);
   showSite(url);
 }
 
@@ -199,6 +217,11 @@ export function getActiveIframe() {
 
 export function getActiveUrl() {
   return activeUrl;
+}
+
+export function getNavigatedUrl() {
+  if (!activeUrl) return null;
+  return navigatedUrls.get(activeUrl) || activeUrl;
 }
 
 export function isErrored(url) {
@@ -225,6 +248,7 @@ export function destroyAllIframes() {
   }
   iframes.clear();
   errorUrls.clear();
+  navigatedUrls.clear();
   errorPanelEl.classList.add("hidden");
   activeUrl = null;
 }

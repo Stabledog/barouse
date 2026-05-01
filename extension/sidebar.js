@@ -111,11 +111,57 @@ function wireToolbar() {
   });
 }
 
+// --- Keyboard shortcuts ---
+
+document.addEventListener("keydown", (e) => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  const url = viewport.getActiveUrl();
+  if (!url) return;
+
+  if (e.key === "=" || e.key === "+") {
+    e.preventDefault();
+    viewport.setZoom(url, viewport.getZoom(url) + 0.1);
+  } else if (e.key === "-") {
+    e.preventDefault();
+    viewport.setZoom(url, viewport.getZoom(url) - 0.1);
+  } else if (e.key === "0") {
+    e.preventDefault();
+    viewport.setZoom(url, 1.0);
+  }
+});
+
 async function init() {
   config = await loadConfig();
+  await viewport.loadZoom();
   wireToolbar();
   await syncDnrRules(config.sites);
-  initContextMenu(() => viewport.getActiveUrl());
+
+  initContextMenu({
+    getActiveUrl: () => viewport.getActiveUrl(),
+    getActiveZoom: () => viewport.getActiveZoom(),
+    onReload() {
+      const url = viewport.getActiveUrl();
+      if (url) viewport.resetSite(url);
+    },
+    onBack()    { viewport.goBack(); },
+    onForward() { viewport.goForward(); },
+    onZoomIn() {
+      const url = viewport.getActiveUrl();
+      if (url) viewport.setZoom(url, viewport.getZoom(url) + 0.1);
+    },
+    onZoomOut() {
+      const url = viewport.getActiveUrl();
+      if (url) viewport.setZoom(url, viewport.getZoom(url) - 0.1);
+    },
+    onZoomReset() {
+      const url = viewport.getActiveUrl();
+      if (url) viewport.setZoom(url, 1.0);
+    },
+    onLaunchTab() {
+      const url = viewport.getActiveUrl();
+      if (url) chrome.tabs.create({ url });
+    },
+  });
 }
 
 init();

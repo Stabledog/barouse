@@ -8,6 +8,7 @@ const errorRetryBtn = document.getElementById("error-retry");
 const iframes = new Map(); // url -> HTMLIFrameElement
 const loadTimestamps = new Map(); // url -> number[] (recent load times)
 const errorUrls = new Map(); // url -> { reason }
+const zoomLevels = new Map(); // url -> number (zoom factor, default 1.0)
 let activeUrl = null;
 
 const LOOP_THRESHOLD = 3;
@@ -159,8 +160,9 @@ export function showSite(url) {
     const iframe = document.createElement("iframe");
     iframe.addEventListener("load", () => onIframeLoad(iframe, url));
     iframe.src = url;
-    viewportEl.appendChild(iframe);
     iframes.set(url, iframe);
+    applyZoom(url);
+    viewportEl.appendChild(iframe);
   }
 
   // Show target iframe
@@ -225,4 +227,79 @@ export function destroyAllIframes() {
   errorUrls.clear();
   errorPanelEl.classList.add("hidden");
   activeUrl = null;
+}
+
+// --- Zoom ---
+
+const ZOOM_KEY = "barouse_zoom_levels";
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 2.0;
+
+function applyZoom(url) {
+  const iframe = iframes.get(url);
+  if (!iframe) return;
+  const z = zoomLevels.get(url) || 1.0;
+  if (z === 1.0) {
+    iframe.style.transform = "";
+    iframe.style.transformOrigin = "";
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+  } else {
+    iframe.style.transform = `scale(${z})`;
+    iframe.style.transformOrigin = "0 0";
+    iframe.style.width = `${100 / z}%`;
+    iframe.style.height = `${100 / z}%`;
+  }
+}
+
+function saveZoom() {
+  const obj = Object.fromEntries(zoomLevels);
+  chrome.storage.local.set({ [ZOOM_KEY]: obj });
+}
+
+export async function loadZoom() {
+  const result = await chrome.storage.local.get(ZOOM_KEY);
+  const obj = result[ZOOM_KEY];
+  if (obj && typeof obj === "object") {
+    for (const [url, level] of Object.entries(obj)) {
+      zoomLevels.set(url, level);
+    }
+  }
+}
+
+export function setZoom(url, level) {
+  const clamped = Math.round(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, level)) * 10) / 10;
+  if (clamped === 1.0) {
+    zoomLevels.delete(url);
+  } else {
+    zoomLevels.set(url, clamped);
+  }
+  applyZoom(url);
+  saveZoom();
+}
+
+export function getZoom(url) {
+  return zoomLevels.get(url) || 1.0;
+}
+
+export function getActiveZoom() {
+  return activeUrl ? getZoom(activeUrl) : 1.0;
+}
+
+// --- Navigation ---
+
+export function goBack() {
+  if (!activeUrl) return;
+  const iframe = iframes.get(activeUrl);
+  if (iframe) {
+    iframe.contentWindow.postMessage({ type: "barouse:navigate", action: "back" }, "*");
+  }
+}
+
+export function goForward() {
+  if (!activeUrl) return;
+  const iframe = iframes.get(activeUrl);
+  if (iframe) {
+    iframe.contentWindow.postMessage({ type: "barouse:navigate", action: "forward" }, "*");
+  }
 }

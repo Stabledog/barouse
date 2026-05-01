@@ -16,9 +16,11 @@ const addSiteUrlEl = document.getElementById("add-site-url");
 const addSiteLabelInput = document.getElementById("add-site-label");
 const addSiteSaveBtn = document.getElementById("add-site-save");
 const addSiteCancelBtn = document.getElementById("add-site-cancel");
+const addSiteCopyBtn = document.getElementById("add-site-copy");
 
 function showAddSiteDialog(tab) {
   addSiteUrlEl.textContent = tab.url;
+  addSiteUrlEl.href = tab.url;
   addSiteLabelInput.value = (tab.title || "").slice(0, 20);
   addSiteDialog.classList.remove("hidden");
   addSiteLabelInput.focus();
@@ -49,6 +51,13 @@ addSiteSaveBtn.addEventListener("click", async () => {
 });
 
 addSiteCancelBtn.addEventListener("click", hideAddSiteDialog);
+
+addSiteCopyBtn.addEventListener("click", async () => {
+  const url = addSiteUrlEl.textContent;
+  await navigator.clipboard.writeText(url);
+  addSiteCopyBtn.textContent = "Copied";
+  setTimeout(() => { addSiteCopyBtn.textContent = "Copy"; }, 1500);
+});
 
 function wireToolbar() {
   renderToolbar(config, {

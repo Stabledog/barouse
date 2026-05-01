@@ -243,6 +243,18 @@ async function init() {
       const url = viewport.getNavigatedUrl();
       if (url) chrome.tabs.create({ url });
     },
+    async onRemoveSite(index) {
+      if (index < 0 || index >= config.sites.length) return;
+      config.sites.splice(index, 1);
+      await saveConfig(config);
+      viewport.destroyAllIframes();
+      wireToolbar();
+      await syncDnrRules(config.sites);
+      currentActive = -1;
+      saveActiveSite(null);
+      populateLandingSites(config.sites);
+      viewport.showLanding();
+    },
   });
 }
 

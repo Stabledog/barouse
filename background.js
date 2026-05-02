@@ -17,3 +17,49 @@ chrome.webRequest.onCompleted.addListener(
   },
   { urls: ["<all_urls>"], types: ["sub_frame"] }
 );
+
+// Workspace API: handle messages relayed from nav-helper.js content script.
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message.type === "barouse:ping") {
+    const manifest = chrome.runtime.getManifest();
+    sendResponse({ installed: true, version: manifest.version });
+    return false;
+  }
+
+  if (message.type === "barouse:query-tabs") {
+    const queryOpts = message.payload?.windowId
+      ? { windowId: message.payload.windowId }
+      : { currentWindow: true };
+    chrome.tabs.query(queryOpts).then((tabs) => {
+      sendResponse(tabs.map((t) => ({
+        url: t.url,
+        title: t.title,
+        index: t.index,
+        pinned: t.pinned,
+      })));
+    }).catch(() => {
+      sendResponse([]);
+    });
+    return true; // async response
+  }
+
+  if (message.type === "barouse:open-workspace") {
+    const urls = message.payload?.urls;
+    if (!Array.isArray(urls) || urls.length === 0) {
+      sendResponse({ error: "No URLs provided" });
+      return false;
+    }
+
+    chrome.windows.create({ url: urls[0], focused: true }).then((win) => {
+      const remaining = urls.slice(1);
+      Promise.all(
+        remaining.map((url, i) =>
+          chrome.tabs.create({ windowId: win.id, url, index: i + 1 })
+        )
+      ).then(() => {
+        sendResponse({ windowId: win.id, tabCount: urls.length });
+      });
+    });
+    return true; // async response
+  }
+});

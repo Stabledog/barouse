@@ -1,5 +1,22 @@
 (function () {
-  // Only run inside iframes, not top-level pages.
+  // Workspace API relay — works on ALL pages (top-level and iframes).
+  // Forwards barouse:* workspace messages from the page to the background
+  // service worker and posts the response back with a "-result" suffix.
+  const WORKSPACE_TYPES = ["barouse:ping", "barouse:query-tabs", "barouse:open-workspace"];
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window) return;
+    if (!event.data?.type) return;
+    if (!WORKSPACE_TYPES.includes(event.data.type)) return;
+
+    chrome.runtime.sendMessage(event.data).then((response) => {
+      window.postMessage({ type: event.data.type + "-result", payload: response }, "*");
+    }).catch(() => {
+      window.postMessage({ type: event.data.type + "-result", payload: null, error: true }, "*");
+    });
+  });
+
+  // Everything below only runs inside iframes, not top-level pages.
   if (window === window.top) return;
 
   // Activation flag — only set when the parent sidebar sends barouse:init.

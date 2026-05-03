@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Barouse",
-  "version": "1.21.0",
+  "version": "2.2.0",
   "description": "Browser-owned sidebar hosting arbitrary sites in iframes",
   "permissions": [
     "sidePanel",
     "tabs",
+    "scripting",
     "declarativeNetRequest",
     "webRequest",
     "storage",

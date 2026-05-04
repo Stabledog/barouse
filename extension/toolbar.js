@@ -8,7 +8,7 @@ export function renderToolbar(config, callbacks) {
   // Site buttons
   config.sites.forEach((site, i) => {
     const btn = document.createElement("button");
-    btn.dataset.tooltip = i < 9 ? `${site.label}  Ctrl+${i + 1}` : site.label;
+    btn.dataset.tooltip = i < 9 ? `${site.label}  Alt+${i + 1}` : site.label;
     btn.dataset.index = i;
 
     const img = document.createElement("img");

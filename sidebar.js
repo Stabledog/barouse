@@ -211,10 +211,12 @@ function populateLandingSites(sites) {
 }
 
 async function init() {
-  const stored = await chrome.storage.sync.get("barouse_github_creds");
-  const creds = stored.barouse_github_creds;
-  if (!creds || !creds.token || !creds.owner || !creds.repo) {
-    await applyDefaults();
+  const session = await chrome.storage.session.get("podifill_setup_done");
+  if (!session.podifill_setup_done) {
+    const applied = await applyDefaults();
+    if (applied) {
+      await chrome.storage.session.set({ podifill_setup_done: true });
+    }
   }
 
   config = await loadConfig();

@@ -83,18 +83,20 @@ function showPasswordDialog() {
   });
 }
 
-export async function applyDefaults() {
-  let data;
+async function loadDefaults() {
   try {
     const url = chrome.runtime.getURL("defaults.json");
     const resp = await fetch(url);
-    if (!resp.ok) return false;
-    data = await resp.json();
+    if (!resp.ok) return null;
+    return await resp.json();
   } catch {
-    return false;
+    return null;
   }
+}
 
-  if (!data.encrypted_token) return false;
+export async function applyDefaults() {
+  const data = await loadDefaults();
+  if (!data || !data.encrypted_token) return false;
 
   const password = await showPasswordDialog();
   if (!password) return false;
@@ -109,10 +111,10 @@ export async function applyDefaults() {
 
   await chrome.storage.sync.set({
     barouse_github_creds: {
+      host: data.host || "github.com",
       owner: data.owner || "",
       repo: data.repo || "",
       token,
-      host: data.host || "github.com",
     },
   });
 

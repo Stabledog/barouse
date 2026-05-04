@@ -5,6 +5,7 @@ import { syncDnrRules } from "./dnr.js";
 import { captureTab } from "./capture.js";
 import { openSettingsEditor, closeSettingsEditor } from "./settings-editor.js";
 import { initContextMenu } from "./context-menu.js";
+import { applyDefaults } from "./defaults-loader.js";
 
 let config = null;
 let currentActive = -1;
@@ -210,6 +211,12 @@ function populateLandingSites(sites) {
 }
 
 async function init() {
+  const stored = await chrome.storage.sync.get("barouse_github_creds");
+  const creds = stored.barouse_github_creds;
+  if (!creds || !creds.token || !creds.owner || !creds.repo) {
+    await applyDefaults();
+  }
+
   config = await loadConfig();
   await viewport.loadZoom();
 

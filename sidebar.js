@@ -9,6 +9,23 @@ import { initContextMenu } from "./context-menu.js";
 let config = null;
 let currentActive = -1;
 
+function switchToSite(i) {
+  if (!config || i < 0 || i >= config.sites.length) return;
+  const site = config.sites[i];
+  if (i === currentActive) {
+    if (viewport.isErrored(site.url)) {
+      viewport.retrySite(site.url);
+    } else {
+      viewport.resetSite(site.url);
+    }
+  } else {
+    viewport.showSite(site.url);
+    setActiveButton(i);
+    currentActive = i;
+    saveActiveSite(site.url);
+  }
+}
+
 const ACTIVE_SITE_KEY = "barouse_active_site";
 
 function saveActiveSite(url) {
@@ -71,22 +88,7 @@ addSiteCopyBtn.addEventListener("click", async () => {
 function wireToolbar() {
   renderToolbar(config, {
     onSiteClick(i) {
-      const site = config.sites[i];
-      if (i === currentActive) {
-        if (viewport.isErrored(site.url)) {
-          // Retry loading after error
-          viewport.retrySite(site.url);
-        } else {
-          // Already active — navigate home
-          viewport.resetSite(site.url);
-        }
-      } else {
-        // Switch to this site
-        viewport.showSite(site.url);
-        setActiveButton(i);
-        currentActive = i;
-        saveActiveSite(site.url);
-      }
+      switchToSite(i);
     },
 
     async onCaptureClick() {
@@ -153,12 +155,19 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
     handleZoomKey(e.key);
   }
+  if (e.key >= "1" && e.key <= "9") {
+    e.preventDefault();
+    switchToSite(parseInt(e.key, 10) - 1);
+  }
 });
 
 // Forwarded from content script when iframe has focus
 window.addEventListener("message", (event) => {
   if (event.data?.type === "barouse:zoom-key") {
     handleZoomKey(event.data.key);
+  }
+  if (event.data?.type === "barouse:switch-tab") {
+    switchToSite(event.data.index);
   }
 });
 

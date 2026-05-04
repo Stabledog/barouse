@@ -45,13 +45,17 @@
   window.addEventListener("popstate", reportUrl);
   window.addEventListener("hashchange", reportUrl);
 
-  // Forward zoom shortcuts to the barouse sidebar (only after activation).
+  // Forward keyboard shortcuts to the barouse sidebar (only after activation).
   document.addEventListener("keydown", (e) => {
     if (!inBarouse) return;
     if (!e.ctrlKey && !e.metaKey) return;
     if (e.key === "=" || e.key === "+" || e.key === "-" || e.key === "0") {
       e.preventDefault();
       window.parent.postMessage({ type: "barouse:zoom-key", key: e.key }, "*");
+    }
+    if (e.key >= "1" && e.key <= "9") {
+      e.preventDefault();
+      window.parent.postMessage({ type: "barouse:switch-tab", index: parseInt(e.key, 10) - 1 }, "*");
     }
   });
 })();

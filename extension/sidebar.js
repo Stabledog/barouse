@@ -9,7 +9,7 @@ import { initContextMenu } from "./context-menu.js";
 let config = null;
 let currentActive = -1;
 
-function switchToSite(i) {
+function switchToSite(i, { focus = false } = {}) {
   if (!config || i < 0 || i >= config.sites.length) return;
   const site = config.sites[i];
   if (i === currentActive) {
@@ -19,10 +19,14 @@ function switchToSite(i) {
       viewport.resetSite(site.url);
     }
   } else {
-    viewport.showSite(site.url);
+    const iframe = viewport.showSite(site.url);
     setActiveButton(i);
     currentActive = i;
     saveActiveSite(site.url);
+    if (focus && iframe) {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.postMessage({ type: "barouse:activate" }, "*");
+    }
   }
 }
 
@@ -156,7 +160,7 @@ document.addEventListener("keydown", (e) => {
   }
   if (e.altKey && e.key >= "1" && e.key <= "9") {
     e.preventDefault();
-    switchToSite(parseInt(e.key, 10) - 1);
+    switchToSite(parseInt(e.key, 10) - 1, { focus: true });
   }
 });
 
@@ -166,14 +170,14 @@ window.addEventListener("message", (event) => {
     handleZoomKey(event.data.key);
   }
   if (event.data?.type === "barouse:switch-tab") {
-    switchToSite(event.data.index);
+    switchToSite(event.data.index, { focus: true });
   }
 });
 
 // Forwarded from content script on the main page (chrome.runtime messaging)
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === "barouse:switch-tab") {
-    switchToSite(message.index);
+    switchToSite(message.index, { focus: true });
   }
 });
 

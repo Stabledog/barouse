@@ -1,4 +1,28 @@
 (function () {
+  // Podifill: inject apps localStorage for notehub.web and metabrowse
+  (function () {
+    const path = location.pathname;
+    const isNotehub = path.includes("/notehub.web/");
+    const isMetabrowse = path.includes("/metabrowse/");
+    if (!isNotehub && !isMetabrowse) return;
+
+    chrome.storage.local.get("podifill_apps_config").then((result) => {
+      const cfg = result.podifill_apps_config;
+      if (!cfg || !cfg.token || !cfg.host) return;
+      if (location.hostname !== cfg.host) return;
+
+      localStorage.setItem("notehub:token", cfg.token);
+      localStorage.setItem("notehub:host", cfg.host);
+      if (isNotehub && cfg.notehub_default_repo) {
+        localStorage.setItem("notehub:defaultRepo", cfg.notehub_default_repo);
+      }
+      if (isMetabrowse) {
+        if (cfg.metabrowse_owner) localStorage.setItem("metabrowse:owner", cfg.metabrowse_owner);
+        if (cfg.metabrowse_repo) localStorage.setItem("metabrowse:repo", cfg.metabrowse_repo);
+      }
+    }).catch(() => {});
+  })();
+
   // Workspace API relay — works on ALL pages (top-level and iframes).
   // Forwards barouse:* workspace messages from the page to the background
   // service worker and posts the response back with a "-result" suffix.

@@ -111,12 +111,29 @@ export async function applyDefaults() {
 
   await chrome.storage.sync.set({
     barouse_github_creds: {
-      host: data.host || "github.com",
-      owner: data.owner || "",
-      repo: data.repo || "",
+      host: data.host,
+      owner: data.owner,
+      repo: data.repo,
       token,
     },
   });
+
+  if (data.apps && data.apps.encrypted_token) {
+    try {
+      const appsToken = await decryptToken(data.apps.encrypted_token, password);
+      await chrome.storage.local.set({
+        podifill_apps_config: {
+          host: data.apps.host,
+          token: appsToken,
+          notehub_default_repo: data.apps.notehub_default_repo,
+          metabrowse_owner: data.apps.metabrowse_owner,
+          metabrowse_repo: data.apps.metabrowse_repo,
+        },
+      });
+    } catch (e) {
+      console.error("podifill: apps token decryption failed:", e);
+    }
+  }
 
   return true;
 }

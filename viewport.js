@@ -181,6 +181,7 @@ export function showSite(url) {
       onIframeLoad(iframe, url);
       // Activate the content script in this iframe (enables zoom key forwarding).
       iframe.contentWindow.postMessage({ type: "barouse:init" }, "*");
+      iframe.contentWindow.postMessage({ type: "barouse:activate" }, "*");
     });
     iframe.src = url;
     iframes.set(url, iframe);

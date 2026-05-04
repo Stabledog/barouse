@@ -108,6 +108,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true; // async response
   }
 
+  if (message.type === "barouse:switch-tab") {
+    chrome.runtime.sendMessage(message).catch(() => {});
+    return false;
+  }
+
   if (message.type === "barouse:open-workspace") {
     const urls = message.payload?.urls;
     if (!Array.isArray(urls) || urls.length === 0) {

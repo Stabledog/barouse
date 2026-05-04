@@ -16,8 +16,19 @@
     });
   });
 
+  // Top-level pages: forward Alt+1-9 to the sidebar via chrome.runtime.
+  if (window === window.top) {
+    document.addEventListener("keydown", (e) => {
+      if (!e.altKey) return;
+      if (e.key >= "1" && e.key <= "9") {
+        e.preventDefault();
+        chrome.runtime.sendMessage({ type: "barouse:switch-tab", index: parseInt(e.key, 10) - 1 }).catch(() => {});
+      }
+    });
+    return;
+  }
+
   // Everything below only runs inside iframes, not top-level pages.
-  if (window === window.top) return;
 
   // Activation flag — only set when the parent sidebar sends barouse:init.
   // Prevents keyboard interception in iframes on regular pages.
@@ -48,12 +59,12 @@
   // Forward keyboard shortcuts to the barouse sidebar (only after activation).
   document.addEventListener("keydown", (e) => {
     if (!inBarouse) return;
-    if (!e.ctrlKey && !e.metaKey) return;
-    if (e.key === "=" || e.key === "+" || e.key === "-" || e.key === "0") {
+    if (!e.ctrlKey && !e.metaKey && !e.altKey) return;
+    if ((e.ctrlKey || e.metaKey) && (e.key === "=" || e.key === "+" || e.key === "-" || e.key === "0")) {
       e.preventDefault();
       window.parent.postMessage({ type: "barouse:zoom-key", key: e.key }, "*");
     }
-    if (e.key >= "1" && e.key <= "9") {
+    if (e.altKey && e.key >= "1" && e.key <= "9") {
       e.preventDefault();
       window.parent.postMessage({ type: "barouse:switch-tab", index: parseInt(e.key, 10) - 1 }, "*");
     }

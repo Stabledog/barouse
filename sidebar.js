@@ -150,24 +150,30 @@ function handleZoomKey(key) {
 
 // Sidebar-focused shortcuts
 document.addEventListener("keydown", (e) => {
-  if (!e.ctrlKey && !e.metaKey) return;
-  if (e.key === "=" || e.key === "+" || e.key === "-" || e.key === "0") {
+  if ((e.ctrlKey || e.metaKey) && (e.key === "=" || e.key === "+" || e.key === "-" || e.key === "0")) {
     e.preventDefault();
     handleZoomKey(e.key);
   }
-  if (e.key >= "1" && e.key <= "9") {
+  if (e.altKey && e.key >= "1" && e.key <= "9") {
     e.preventDefault();
     switchToSite(parseInt(e.key, 10) - 1);
   }
 });
 
-// Forwarded from content script when iframe has focus
+// Forwarded from content script when iframe has focus (postMessage)
 window.addEventListener("message", (event) => {
   if (event.data?.type === "barouse:zoom-key") {
     handleZoomKey(event.data.key);
   }
   if (event.data?.type === "barouse:switch-tab") {
     switchToSite(event.data.index);
+  }
+});
+
+// Forwarded from content script on the main page (chrome.runtime messaging)
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === "barouse:switch-tab") {
+    switchToSite(message.index);
   }
 });
 

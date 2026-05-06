@@ -104,6 +104,26 @@
     });
   });
 
+  // Clipboard write bridge — lets the page write to the OS clipboard via the
+  // extension's clipboardWrite permission.
+  window.addEventListener("message", (event) => {
+    if (event.source !== window) return;
+    if (event.data?.type !== "barouse:clipboard-write") return;
+    if (!inBarouse) return;
+    if (!event.data.text) return;
+
+    navigator.clipboard.writeText(event.data.text).catch(() => {
+      const ta = document.createElement("textarea");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      ta.value = event.data.text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    });
+  });
+
   // Forward keyboard shortcuts to the barouse sidebar (only after activation).
   document.addEventListener("keydown", (e) => {
     if (!inBarouse) return;

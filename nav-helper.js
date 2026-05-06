@@ -80,6 +80,30 @@
   window.addEventListener("popstate", reportUrl);
   window.addEventListener("hashchange", reportUrl);
 
+  // Clipboard bridge — lets the page read the OS clipboard via the extension's
+  // clipboardRead permission (needed in sidebar iframes where the Clipboard API
+  // permission prompt cannot appear).
+  window.addEventListener("message", (event) => {
+    if (event.source !== window) return;
+    if (event.data?.type !== "barouse:clipboard-read") return;
+    if (!inBarouse) return;
+
+    navigator.clipboard.readText().then((text) => {
+      window.postMessage({ type: "barouse:clipboard-read-result", text: text || null }, "*");
+    }).catch(() => {
+      // Fallback: execCommand('paste') works with the extension's clipboardRead permission
+      const ta = document.createElement("textarea");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      const ok = document.execCommand("paste");
+      const text = ok ? ta.value : null;
+      ta.remove();
+      window.postMessage({ type: "barouse:clipboard-read-result", text: text || null }, "*");
+    });
+  });
+
   // Forward keyboard shortcuts to the barouse sidebar (only after activation).
   document.addEventListener("keydown", (e) => {
     if (!inBarouse) return;

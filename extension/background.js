@@ -88,7 +88,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "barouse:ping") {
     const manifest = chrome.runtime.getManifest();
     sendResponse({ installed: true, version: manifest.version });
-    return false;
+    return true;
   }
 
   if (message.type === "barouse:query-tabs") {

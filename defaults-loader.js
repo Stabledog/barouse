@@ -34,7 +34,7 @@ async function decryptToken(encrypted, password) {
   return new TextDecoder().decode(plainBytes);
 }
 
-function showPasswordDialog() {
+function showPasswordDialog(errorMessage) {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
     overlay.style.cssText =
@@ -60,6 +60,11 @@ function showPasswordDialog() {
 
     const pwInput = box.querySelector("#podifill-pw");
     const errEl = box.querySelector("#podifill-err");
+
+    if (errorMessage) {
+      errEl.textContent = errorMessage;
+      errEl.style.display = "block";
+    }
 
     function submit() {
       const pw = pwInput.value;
@@ -98,15 +103,20 @@ export async function applyDefaults() {
   const data = await loadDefaults();
   if (!data || !data.encrypted_token) return false;
 
-  const password = await showPasswordDialog();
-  if (!password) return false;
-
+  let errorMessage;
+  let password;
   let token;
-  try {
-    token = await decryptToken(data.encrypted_token, password);
-  } catch {
-    console.error("podifill: decryption failed (wrong password?)");
-    return false;
+  for (;;) {
+    password = await showPasswordDialog(errorMessage);
+    if (!password) return false;
+
+    try {
+      token = await decryptToken(data.encrypted_token, password);
+      break;
+    } catch {
+      console.error("podifill: decryption failed (wrong password?)");
+      errorMessage = "Incorrect password. Try again.";
+    }
   }
 
   await chrome.storage.sync.set({

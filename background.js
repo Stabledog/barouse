@@ -162,9 +162,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 const FAVORITES_MAX_DEPTH = 4;
 const FAVORITES_MAX_NODES = 2000;
 
-// Only Metabrowse may write bookmarks, otherwise any web page could. The sender
-// must sit under a sidebar site from the user's own config whose path contains
-// /metabrowse/ — Metabrowse runs inside the sidebar, so it is always one.
+// Only Metabrowse may write bookmarks, otherwise any web page could. The sender's
+// URL must sit under a sidebar site from the user's own config whose path
+// contains /metabrowse/. Only the URL is checked, so Metabrowse in a normal tab
+// passes too.
 async function isMetabrowseSender(sender) {
   let url;
   try { url = new URL(sender.url); } catch { return false; }

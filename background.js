@@ -163,9 +163,9 @@ const FAVORITES_MAX_DEPTH = 4;
 const FAVORITES_MAX_NODES = 2000;
 
 // Only Metabrowse may write bookmarks, otherwise any web page could. The sender's
-// URL must sit under a sidebar site from the user's own config whose path
-// contains /metabrowse/. Only the URL is checked, so Metabrowse in a normal tab
-// passes too.
+// URL must sit under a sidebar site from the user's own config that has a
+// "metabrowse" path segment (with or without a trailing slash). Only the URL is
+// checked, so Metabrowse in a normal tab passes too.
 async function isMetabrowseSender(sender) {
   let url;
   try { url = new URL(sender.url); } catch { return false; }
@@ -177,9 +177,11 @@ async function isMetabrowseSender(sender) {
     let siteUrl;
     try { siteUrl = new URL(site.url); } catch { return false; }
     if (siteUrl.origin !== url.origin) return false;
-    const i = siteUrl.pathname.indexOf("/metabrowse/");
+    const segments = siteUrl.pathname.split("/");
+    const i = segments.indexOf("metabrowse");
     if (i === -1) return false;
-    return url.pathname.startsWith(siteUrl.pathname.slice(0, i + "/metabrowse/".length));
+    const base = segments.slice(0, i + 1).join("/"); // e.g. /pages/owner/metabrowse
+    return url.pathname === base || url.pathname.startsWith(base + "/");
   });
 }
 

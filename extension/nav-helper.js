@@ -26,7 +26,9 @@
   // Workspace API relay — works on ALL pages (top-level and iframes).
   // Forwards barouse:* workspace messages from the page to the background
   // service worker and posts the response back with a "-result" suffix.
-  const WORKSPACE_TYPES = ["barouse:ping", "barouse:query-tabs", "barouse:open-workspace"];
+  const WORKSPACE_TYPES = [
+    "barouse:ping", "barouse:query-tabs", "barouse:open-workspace", "barouse:set-favorites",
+  ];
 
   window.addEventListener("message", (event) => {
     if (event.source !== window) return;

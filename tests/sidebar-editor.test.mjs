@@ -213,3 +213,44 @@ test("a config save rebuilds the toolbar but keeps the editor and its button", a
   editorBtn().click();
   assert.equal(pane().classList.contains("hidden"), false);
 });
+
+test("editor-dirty from the editor turns the slot button red, and clean turns it back", async () => {
+  const [iframe] = editorFrames();
+  assert.equal(editorBtn().classList.contains("dirty"), false);
+  window.dispatchEvent(new window.MessageEvent("message", { data: { type: "barouse:editor-dirty", dirty: true }, source: window }));
+  assert.equal(editorBtn().classList.contains("dirty"), false, "not from the editor: ignored");
+
+  const dirty = (value) => window.dispatchEvent(new window.MessageEvent("message", {
+    data: { type: "barouse:editor-dirty", dirty: value }, source: iframe.contentWindow,
+  }));
+  dirty(true);
+  assert.equal(editorBtn().classList.contains("dirty"), true);
+  assert.equal(editorBtn().dataset.tooltip, "veditor: a.md (not committed)");
+  dirty(false);
+  assert.equal(editorBtn().classList.contains("dirty"), false);
+  assert.equal(editorBtn().dataset.tooltip, "veditor: a.md");
+
+  dirty(true);
+  $(".gear-btn").click(); // a config save rebuilds the toolbar: the mark stays
+  $("#settings-save").click();
+  for (let i = 0; i < 5; i++) await settle();
+  assert.equal(editorBtn().classList.contains("dirty"), true);
+  // The editor page reloads: a new editor, so clean.
+  iframe.dispatchEvent(new window.Event("load"));
+  assert.equal(editorBtn().classList.contains("dirty"), false);
+});
+
+test("a dirty slot is clean again once its editor is replaced", async () => {
+  const [old] = editorFrames();
+  const dirty = (win) => window.dispatchEvent(new window.MessageEvent("message", {
+    data: { type: "barouse:editor-dirty", dirty: true }, source: win,
+  }));
+  dirty(old.contentWindow);
+  await request("docs/b.md");
+  assert.equal(editorBtn().classList.contains("dirty"), true, "still the dirty editor until it closes");
+  fromEditor(old.contentWindow);
+  assert.equal(editorBtn().dataset.tooltip, "veditor: b.md");
+  assert.equal(editorBtn().classList.contains("dirty"), false);
+  dirty(old.contentWindow); // a late message from the old editor
+  assert.equal(editorBtn().classList.contains("dirty"), false);
+});

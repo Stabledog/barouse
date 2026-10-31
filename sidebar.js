@@ -1,5 +1,5 @@
 import { loadConfig, saveConfig } from "./config.js";
-import { renderToolbar, setActiveButton, setEditorButton, setEditorButtonActive } from "./toolbar.js";
+import { renderToolbar, setActiveButton, setEditorButton, setEditorButtonActive, setEditorButtonDirty } from "./toolbar.js";
 import * as viewport from "./viewport.js";
 import { syncDnrRules } from "./dnr.js";
 import { captureTab } from "./capture.js";
@@ -154,7 +154,10 @@ function showEditorSlot() {
 
 const editorSlot = createEditorSlot({
   load(url) {
-    viewport.loadEditor(url, () => editorSlot.loaded());
+    viewport.loadEditor(url, () => {
+      setEditorButtonDirty(false); // a (re)loaded page has a new, clean editor
+      editorSlot.loaded();
+    });
     setEditorButton({ label: fileNameFor(url), onClick: showEditorSlot });
   },
   unload() { viewport.unloadEditor(); },
@@ -181,8 +184,11 @@ document.getElementById("editor-pending-cancel").addEventListener("click", () =>
 });
 
 window.addEventListener("message", (event) => {
-  if (event.data?.type === "barouse:editor-closed" && viewport.isEditorSource(event.source)) {
+  if (!viewport.isEditorSource(event.source)) return;
+  if (event.data?.type === "barouse:editor-closed") {
     editorSlot.closed();
+  } else if (event.data?.type === "barouse:editor-dirty") {
+    setEditorButtonDirty(event.data.dirty === true);
   }
 });
 

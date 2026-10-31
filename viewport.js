@@ -5,6 +5,9 @@ const errorMessageEl = document.getElementById("error-panel-message");
 const errorOpenTabBtn = document.getElementById("error-open-tab");
 const errorRetryBtn = document.getElementById("error-retry");
 const landingPageEl = document.getElementById("landing-page");
+const editorPaneEl = document.getElementById("editor-pane");
+const editorPendingEl = document.getElementById("editor-pending");
+const editorPendingTextEl = document.getElementById("editor-pending-text");
 
 const iframes = new Map(); // url -> HTMLIFrameElement
 const loadTimestamps = new Map(); // url -> number[] (recent load times)
@@ -46,6 +49,7 @@ function showError(url, reason) {
   }
   settingsEl.classList.add("hidden");
   landingPageEl.classList.add("hidden");
+  setEditorPaneVisible(false);
   errorPanelEl.classList.remove("hidden");
   activeUrl = url;
 
@@ -157,15 +161,17 @@ export function showSite(url) {
     }
     settingsEl.classList.add("hidden");
     landingPageEl.classList.add("hidden");
+    setEditorPaneVisible(false);
     errorPanelEl.classList.remove("hidden");
     activeUrl = url;
     return null;
   }
 
-  // Hide settings editor, error panel, and landing page
+  // Hide settings editor, error panel, landing page and editor
   settingsEl.classList.add("hidden");
   errorPanelEl.classList.add("hidden");
   landingPageEl.classList.add("hidden");
+  setEditorPaneVisible(false);
 
   // Hide all iframes
   for (const frame of iframes.values()) {
@@ -236,12 +242,13 @@ export function isErrored(url) {
 }
 
 export function showSettings() {
-  // Hide all iframes, error panel, and landing page
+  // Hide all iframes, error panel, landing page and editor
   for (const frame of iframes.values()) {
     frame.classList.remove("active");
   }
   errorPanelEl.classList.add("hidden");
   landingPageEl.classList.add("hidden");
+  setEditorPaneVisible(false);
   activeUrl = null;
   settingsEl.classList.remove("hidden");
 }
@@ -256,6 +263,7 @@ export function showLanding() {
   }
   settingsEl.classList.add("hidden");
   errorPanelEl.classList.add("hidden");
+  setEditorPaneVisible(false);
   landingPageEl.classList.remove("hidden");
   activeUrl = null;
 }
@@ -269,6 +277,74 @@ export function destroyAllIframes() {
   navigatedUrls.clear();
   errorPanelEl.classList.add("hidden");
   activeUrl = null;
+}
+
+// --- Editor slot (see editor-slot.js) ---
+// Kept apart from the site iframes: it isn't a configured site, so it has no
+// zoom, error panel or loop detection, and destroyAllIframes (config saves)
+// leaves it alone.
+
+let editorIframe = null;
+let editorVisibilityListener = () => {};
+
+function setEditorPaneVisible(visible) {
+  editorPaneEl.classList.toggle("hidden", !visible);
+  editorVisibilityListener(visible);
+}
+
+// fn(visible) runs whenever the editor pane is shown or hidden.
+export function onEditorVisibility(fn) {
+  editorVisibilityListener = fn;
+}
+
+// onLoad runs on each load of the editor page.
+export function loadEditor(url, onLoad) {
+  unloadEditor();
+  const iframe = document.createElement("iframe");
+  iframe.allow = "clipboard-read; clipboard-write";
+  iframe.sandbox = "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads";
+  iframe.addEventListener("load", () => {
+    // Turns on nav-helper.js in the editor (clipboard bridge, Alt+1-9).
+    iframe.contentWindow.postMessage({ type: "barouse:init" }, "*");
+    onLoad();
+  });
+  iframe.src = url;
+  editorIframe = iframe;
+  editorPaneEl.appendChild(iframe);
+}
+
+export function unloadEditor() {
+  editorIframe?.remove();
+  editorIframe = null;
+}
+
+export function showEditor() {
+  for (const frame of iframes.values()) {
+    frame.classList.remove("active");
+  }
+  settingsEl.classList.add("hidden");
+  errorPanelEl.classList.add("hidden");
+  landingPageEl.classList.add("hidden");
+  activeUrl = null;
+  setEditorPaneVisible(true);
+  editorIframe?.contentWindow?.focus();
+}
+
+export function isEditorShown() {
+  return !editorPaneEl.classList.contains("hidden");
+}
+
+export function isEditorSource(source) {
+  return !!editorIframe && !!source && source === editorIframe.contentWindow;
+}
+
+export function requestEditorQuit() {
+  editorIframe?.contentWindow?.postMessage({ type: "barouse:request-quit" }, "*");
+}
+
+export function setEditorPending(text) {
+  editorPendingTextEl.textContent = text || "";
+  editorPendingEl.classList.toggle("hidden", !text);
 }
 
 // --- Zoom ---

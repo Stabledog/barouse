@@ -1,4 +1,5 @@
 import { blobPatternFor, editorUrlFor, validateMetabrowseUrl } from "./veditor-launch.js";
+import { sidebarRequestKey } from "./editor-slot.js";
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
@@ -9,6 +10,7 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
 const VEDITOR_MENU = "veditor-edit";
 const VEDITOR_MENU_WINDOW = "veditor-edit-window";
+const VEDITOR_MENU_SIDEBAR = "veditor-edit-sidebar";
 
 async function getMetabrowseUrl() {
   const { barouse_config: cfg } = await chrome.storage.local.get("barouse_config");
@@ -36,6 +38,7 @@ async function buildVeditorMenu() {
   const common = { contexts: ["page", "selection"], documentUrlPatterns: [blobPatternFor(metabrowseUrl)] };
   createMenu({ id: VEDITOR_MENU, title: "Edit in veditor", ...common });
   createMenu({ id: VEDITOR_MENU_WINDOW, parentId: VEDITOR_MENU, title: "Window", ...common });
+  createMenu({ id: VEDITOR_MENU_SIDEBAR, parentId: VEDITOR_MENU, title: "Sidebar", ...common });
 }
 
 // One rebuild at a time: overlapping removeAll/create pairs collide on the ids.
@@ -52,11 +55,15 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.barouse_config) syncVeditorMenu();
 });
 
-chrome.contextMenus.onClicked.addListener(async (info) => {
-  if (info.menuItemId !== VEDITOR_MENU_WINDOW) return;
+chrome.contextMenus.onClicked.addListener((info, tab) => {
   // The document the pattern matched: a framed page (e.g. a site in the side
   // panel) has its own frameUrl, while pageUrl is the top document.
   const fileUrl = info.frameUrl ?? info.pageUrl;
+  if (info.menuItemId === VEDITOR_MENU_WINDOW) openInWindow(fileUrl);
+  else if (info.menuItemId === VEDITOR_MENU_SIDEBAR) openInSidebar(fileUrl, tab);
+});
+
+async function openInWindow(fileUrl) {
   const metabrowseUrl = await getMetabrowseUrl();
   const url = metabrowseUrl && editorUrlFor(fileUrl, metabrowseUrl);
   if (!url) {
@@ -69,7 +76,27 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
   } catch (err) {
     console.error("barouse: couldn't open the editor window:", err);
   }
-});
+}
+
+// Runs in the click handler without awaiting anything first: sidePanel.open()
+// needs the click's user gesture, which the first await loses. So the request
+// carries the page URL (the sidebar turns it into an editor URL with its own
+// config), and the sidebar picks it up at startup or from storage.onChanged.
+// See editor-slot.js for the protocol.
+function openInSidebar(fileUrl, tab) {
+  const request = { fileUrl, id: crypto.randomUUID() };
+  const logError = (err) => console.error("barouse: couldn't open the editor in the sidebar:", err);
+  if (tab?.windowId !== undefined && tab.windowId !== chrome.windows.WINDOW_ID_NONE) {
+    chrome.storage.session.set({ [sidebarRequestKey(tab.windowId)]: request }).catch(logError);
+    chrome.sidePanel.open({ windowId: tab.windowId }).catch(logError);
+    return;
+  }
+  // No tab: the click came from a page inside the side panel itself, which is
+  // open in the focused window.
+  chrome.windows.getLastFocused()
+    .then((win) => chrome.storage.session.set({ [sidebarRequestKey(win.id)]: request }))
+    .catch(logError);
+}
 
 // --- Workspace window title ---
 // Maps windowId → workspaceName in memory for synchronous lookup (no async

@@ -7,8 +7,9 @@ import { validateMetabrowseUrl, blobHostFor, blobPatternFor, editorUrlFor } from
 const GHES = "https://bbgithub.example.com/pages/me/metabrowse/";
 const PUBLIC = "https://stabledog.github.io/metabrowse/";
 
-test("validateMetabrowseUrl: empty or absent is off, not an error", () => {
+test("validateMetabrowseUrl: absent, null or empty is off, not an error", () => {
   assert.equal(validateMetabrowseUrl(undefined), null);
+  assert.equal(validateMetabrowseUrl(null), null);
   assert.equal(validateMetabrowseUrl(""), null);
   assert.equal(validateMetabrowseUrl(GHES), null);
 });
@@ -45,5 +46,7 @@ test("editorUrlFor: null for other hosts and non-file pages", () => {
   assert.equal(editorUrlFor("https://github.com/o/r/blob/main/a.md", GHES), null);
   assert.equal(editorUrlFor("https://bbgithub.example.com/o/r/tree/main/docs", GHES), null);
   assert.equal(editorUrlFor("https://bbgithub.example.com/o/r/blob/", GHES), null);
+  assert.equal(editorUrlFor("https://bbgithub.example.com/o/r/blob/main", GHES), null); // a ref, no path
+  assert.equal(editorUrlFor("https://bbgithub.example.com/o/r/blob/main/", GHES), null);
   assert.equal(editorUrlFor("not a url", GHES), null);
 });

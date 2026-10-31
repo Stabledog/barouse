@@ -9,9 +9,10 @@
 // metabrowse_url's own host (GHES serves Pages from it), or github.com for a
 // *.github.io site.
 
-// Returns an error string, or null if the value is usable (empty means "off").
+// Returns an error string, or null if the value is usable. Absent, null and ""
+// all mean "off" (no menu); anything else must be an https URL.
 export function validateMetabrowseUrl(value) {
-  if (value === undefined || value === "") return null;
+  if (value === undefined || value === null || value === "") return null;
   if (typeof value !== "string") return "metabrowse_url must be a string";
   let url;
   try { url = new URL(value); } catch { return "metabrowse_url must be a URL"; }
@@ -35,8 +36,9 @@ export function editorUrlFor(pageUrl, metabrowseUrl) {
   try { page = new URL(pageUrl); } catch { return null; }
   if (page.protocol !== "https:" || page.host !== blobHostFor(metabrowseUrl)) return null;
   // The path is already percent-encoded; metabrowse decodes each segment.
-  // The query (?plain=1) and the anchor (#L10) are dropped.
-  const m = page.pathname.match(/^\/([^/]+)\/([^/]+)\/blob\/(.+)$/);
+  // The query (?plain=1) and the anchor (#L10) are dropped. A ref needs a
+  // path after it: /o/r/blob/main alone isn't a file.
+  const m = page.pathname.match(/^\/([^/]+)\/([^/]+)\/blob\/([^/]+(?:\/[^/]+)+)$/);
   if (!m) return null;
   const base = metabrowseUrl.split("#")[0];
   return `${base}#/blob/${m[1]}/${m[2]}/${m[3]}`;

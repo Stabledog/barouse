@@ -16,13 +16,26 @@ async function getMetabrowseUrl() {
   return url && !validateMetabrowseUrl(url) ? url : null;
 }
 
+// contextMenus.create reports errors through runtime.lastError, not a rejection.
+function createMenu(props) {
+  chrome.contextMenus.create(props, () => {
+    if (chrome.runtime.lastError) {
+      console.error(`barouse: menu ${props.id} not created:`, chrome.runtime.lastError.message);
+    }
+  });
+}
+
 async function buildVeditorMenu() {
+  // removeAll wipes every barouse menu item. The next menu added must be
+  // rebuilt here too (or this must remove only its own ids).
   await chrome.contextMenus.removeAll();
   const metabrowseUrl = await getMetabrowseUrl();
   if (!metabrowseUrl) return;
-  const common = { contexts: ["page", "selection", "editable"], documentUrlPatterns: [blobPatternFor(metabrowseUrl)] };
-  chrome.contextMenus.create({ id: VEDITOR_MENU, title: "Edit in veditor", ...common });
-  chrome.contextMenus.create({ id: VEDITOR_MENU_WINDOW, parentId: VEDITOR_MENU, title: "Window", ...common });
+  // GitHub's code view is a readonly textarea, which Chrome never reports as
+  // "editable", so that context would only add the menu to search inputs.
+  const common = { contexts: ["page", "selection"], documentUrlPatterns: [blobPatternFor(metabrowseUrl)] };
+  createMenu({ id: VEDITOR_MENU, title: "Edit in veditor", ...common });
+  createMenu({ id: VEDITOR_MENU_WINDOW, parentId: VEDITOR_MENU, title: "Window", ...common });
 }
 
 // One rebuild at a time: overlapping removeAll/create pairs collide on the ids.
@@ -41,14 +54,21 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 chrome.contextMenus.onClicked.addListener(async (info) => {
   if (info.menuItemId !== VEDITOR_MENU_WINDOW) return;
+  // The document the pattern matched: a framed page (e.g. a site in the side
+  // panel) has its own frameUrl, while pageUrl is the top document.
+  const fileUrl = info.frameUrl ?? info.pageUrl;
   const metabrowseUrl = await getMetabrowseUrl();
-  const url = metabrowseUrl && editorUrlFor(info.pageUrl, metabrowseUrl);
+  const url = metabrowseUrl && editorUrlFor(fileUrl, metabrowseUrl);
   if (!url) {
-    console.warn(`barouse: not an editable file page: ${info.pageUrl}`);
+    console.warn(`barouse: not an editable file page: ${fileUrl}`);
     return;
   }
   // A popup has one history entry, so the editor's :q can close it.
-  chrome.windows.create({ url, type: "popup", width: 1000, height: 800 });
+  try {
+    await chrome.windows.create({ url, type: "popup", width: 1000, height: 800 });
+  } catch (err) {
+    console.error("barouse: couldn't open the editor window:", err);
+  }
 });
 
 // --- Workspace window title ---

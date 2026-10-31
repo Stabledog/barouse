@@ -1,4 +1,5 @@
 import { fetchConfigFromGitHub, pushConfigToGitHub } from "./github-sync.js";
+import { validateMetabrowseUrl } from "./veditor-launch.js";
 
 const STORAGE_KEY = "barouse_config";
 
@@ -34,6 +35,9 @@ export function validateConfig(config) {
     }
     seen.add(site.url);
   }
+  // Optional: where "Edit in veditor" opens files (see veditor-launch.js).
+  const urlError = validateMetabrowseUrl(config.metabrowse_url);
+  if (urlError) return { valid: false, error: urlError };
   return { valid: true };
 }
 

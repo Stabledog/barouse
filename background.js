@@ -33,9 +33,11 @@ async function buildVeditorMenu() {
   await chrome.contextMenus.removeAll();
   const metabrowseUrl = await getMetabrowseUrl();
   if (!metabrowseUrl) return;
-  // GitHub's code view is a readonly textarea, which Chrome never reports as
-  // "editable", so that context would only add the menu to search inputs.
-  const common = { contexts: ["page", "selection"], documentUrlPatterns: [blobPatternFor(metabrowseUrl)] };
+  // Chrome reports "page" only when nothing more specific is under the pointer,
+  // and GitHub's code view lays a textarea over the code, so "page" alone hid the
+  // menu on every source file (rendered markdown worked). documentUrlPatterns
+  // already limits it to file pages, so offer it wherever the user right-clicks.
+  const common = { contexts: ["all"], documentUrlPatterns: [blobPatternFor(metabrowseUrl)] };
   createMenu({ id: VEDITOR_MENU, title: "Edit in veditor", ...common });
   createMenu({ id: VEDITOR_MENU_WINDOW, parentId: VEDITOR_MENU, title: "Window", ...common });
   createMenu({ id: VEDITOR_MENU_SIDEBAR, parentId: VEDITOR_MENU, title: "Sidebar", ...common });

@@ -105,6 +105,11 @@ body {
   gap: 4px;
   background: #e8e8e8;
   border-left: 1px solid #ccc;
+  /* Above the viewport's overlays (editor pane z-index 2, landing page 1, ...):
+     the button tooltips (::after) stick out to the left over the viewport, and
+     without this every overlay is painted over them. */
+  position: relative;
+  z-index: 10;
 }
 
 #toolbar button {
@@ -137,6 +142,17 @@ body {
 #toolbar button.active {
   background: #0ea5e9;
   border-color: #0ea5e9;
+  color: #fff;
+}
+
+/* The editor has uncommitted edits: a red pencil, or red behind it while it's showing. */
+#toolbar button.editor-btn.dirty {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+#toolbar button.editor-btn.dirty.active {
+  background: #dc2626;
   color: #fff;
 }
 

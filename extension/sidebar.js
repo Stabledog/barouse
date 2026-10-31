@@ -1,11 +1,13 @@
 import { loadConfig, saveConfig } from "./config.js";
-import { renderToolbar, setActiveButton } from "./toolbar.js";
+import { renderToolbar, setActiveButton, setEditorButton, setEditorButtonActive } from "./toolbar.js";
 import * as viewport from "./viewport.js";
 import { syncDnrRules } from "./dnr.js";
 import { captureTab } from "./capture.js";
 import { openSettingsEditor, closeSettingsEditor } from "./settings-editor.js";
 import { initContextMenu } from "./context-menu.js";
 import { applyDefaults } from "./defaults-loader.js";
+import { editorUrlFor, validateMetabrowseUrl } from "./veditor-launch.js";
+import { createEditorSlot, watchSidebarRequests, fileNameFor } from "./editor-slot.js";
 
 let config = null;
 let currentActive = -1;
@@ -137,6 +139,61 @@ function wireToolbar() {
       saveActiveSite(null);
     }
   });
+}
+
+// --- Editor slot ("Edit in veditor" → Sidebar; protocol in editor-slot.js) ---
+
+let editorReturnTo = -1; // the site that was showing when the editor came up
+
+function showEditorSlot() {
+  if (!viewport.isEditorShown()) editorReturnTo = currentActive;
+  viewport.showEditor();
+  setActiveButton(-1);
+  currentActive = -1;
+}
+
+const editorSlot = createEditorSlot({
+  load(url) {
+    viewport.loadEditor(url, () => editorSlot.loaded());
+    setEditorButton({ label: fileNameFor(url), onClick: showEditorSlot });
+  },
+  unload() { viewport.unloadEditor(); },
+  show: showEditorSlot,
+  requestQuit() { viewport.requestEditorQuit(); },
+  setPending(url) {
+    viewport.setEditorPending(url && `${fileNameFor(url)} opens when you quit this editor.`);
+  },
+  leave() {
+    setEditorButton(null);
+    if (!viewport.isEditorShown()) return; // the user is already elsewhere
+    if (editorReturnTo >= 0 && config && editorReturnTo < config.sites.length) {
+      switchToSite(editorReturnTo);
+    } else {
+      viewport.showLanding();
+    }
+  },
+});
+
+viewport.onEditorVisibility(setEditorButtonActive);
+
+document.getElementById("editor-pending-cancel").addEventListener("click", () => {
+  editorSlot.cancelPending();
+});
+
+window.addEventListener("message", (event) => {
+  if (event.data?.type === "barouse:editor-closed" && viewport.isEditorSource(event.source)) {
+    editorSlot.closed();
+  }
+});
+
+function openEditorFor(fileUrl) {
+  const metabrowseUrl = config?.metabrowse_url;
+  const url = metabrowseUrl && !validateMetabrowseUrl(metabrowseUrl) && editorUrlFor(fileUrl, metabrowseUrl);
+  if (!url) {
+    console.warn(`barouse: can't edit ${fileUrl} (metabrowse_url: ${metabrowseUrl || "unset"})`);
+    return;
+  }
+  editorSlot.open(url);
 }
 
 // --- Zoom shortcuts ---
@@ -283,6 +340,15 @@ async function init() {
       populateLandingSites(config.sites);
       viewport.showLanding();
     },
+  });
+
+  // After config: a request needs metabrowse_url to become an editor URL.
+  const win = await chrome.windows.getCurrent();
+  await watchSidebarRequests({
+    storage: chrome.storage.session,
+    onChanged: chrome.storage.onChanged,
+    windowId: win.id,
+    onRequest: openEditorFor,
   });
 }
 

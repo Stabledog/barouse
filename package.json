@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Dev tooling only: the extension itself has no build step or runtime dependencies.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1"
+  }
+}

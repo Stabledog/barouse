@@ -1,5 +1,8 @@
 const toolbarEl = document.getElementById("toolbar");
 let buttons = [];
+let editorBtn = null;
+let editorSlot = null; // { label, onClick } while an editor is open, else null
+let editorActive = false;
 
 export function renderToolbar(config, callbacks) {
   toolbarEl.innerHTML = "";
@@ -42,6 +45,10 @@ export function renderToolbar(config, callbacks) {
     buttons.push(btn);
   });
 
+  // Editor slot button (setEditorButton), between the sites and capture
+  editorBtn = null;
+  if (editorSlot) renderEditorButton();
+
   // Capture-tab button
   const captureBtn = document.createElement("button");
   captureBtn.dataset.tooltip = "Capture tab";
@@ -50,6 +57,7 @@ export function renderToolbar(config, callbacks) {
     <path d="M9 2h5v5"/>
     <path d="M14 2L7 9"/>
   </svg>`;
+  captureBtn.className = "capture-btn";
   captureBtn.addEventListener("click", () => callbacks.onCaptureClick());
   toolbarEl.appendChild(captureBtn);
 
@@ -77,4 +85,30 @@ export function setActiveButton(index) {
   buttons.forEach((btn, i) => {
     btn.classList.toggle("active", i === index);
   });
+}
+
+function renderEditorButton() {
+  editorBtn = document.createElement("button");
+  editorBtn.className = "editor-btn";
+  editorBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+    <path d="M11 2l3 3-8 8H3v-3z"/>
+    <path d="M9 4l3 3"/>
+  </svg>`;
+  editorBtn.dataset.tooltip = `veditor: ${editorSlot.label}`;
+  editorBtn.classList.toggle("active", editorActive);
+  editorBtn.addEventListener("click", () => editorSlot.onClick());
+  toolbarEl.insertBefore(editorBtn, toolbarEl.querySelector(".capture-btn"));
+}
+
+// Shows the editor slot button ({ label, onClick }), or removes it (null).
+export function setEditorButton(slot) {
+  editorSlot = slot;
+  editorBtn?.remove();
+  editorBtn = null;
+  if (slot) renderEditorButton();
+}
+
+export function setEditorButtonActive(active) {
+  editorActive = active;
+  editorBtn?.classList.toggle("active", active);
 }

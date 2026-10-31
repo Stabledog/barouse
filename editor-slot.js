@@ -12,9 +12,12 @@
 //                          editor quits as if the user typed :q, so a dirty
 //                          buffer gets veditor's own confirm bar.
 //   editor → sidebar       postMessage { type: "barouse:editor-closed" } once
-//                          it has quit. Each side checks event.source: the
-//                          sidebar against the editor iframe, the editor
-//                          against window.parent.
+//                          it has quit, and { type: "barouse:editor-dirty",
+//                          dirty } whenever the buffer starts or stops
+//                          differing from the last commit (the slot button
+//                          turns red; a new or reloaded editor starts clean).
+//                          Each side checks event.source: the sidebar against
+//                          the editor iframe, the editor against window.parent.
 //
 // There's no close button: the editor closes with :q or a request-quit. If the
 // user cancels the confirm bar, no editor-closed comes and the next file waits

@@ -3,6 +3,7 @@ let buttons = [];
 let editorBtn = null;
 let editorSlot = null; // { label, onClick } while an editor is open, else null
 let editorActive = false;
+let editorDirty = false; // the editor has uncommitted edits
 
 export function renderToolbar(config, callbacks) {
   toolbarEl.innerHTML = "";
@@ -94,15 +95,22 @@ function renderEditorButton() {
     <path d="M11 2l3 3-8 8H3v-3z"/>
     <path d="M9 4l3 3"/>
   </svg>`;
-  editorBtn.dataset.tooltip = `veditor: ${editorSlot.label}`;
   editorBtn.classList.toggle("active", editorActive);
+  showEditorDirty();
   editorBtn.addEventListener("click", () => editorSlot.onClick());
   toolbarEl.insertBefore(editorBtn, toolbarEl.querySelector(".capture-btn"));
 }
 
+function showEditorDirty() {
+  editorBtn.classList.toggle("dirty", editorDirty);
+  editorBtn.dataset.tooltip = `veditor: ${editorSlot.label}${editorDirty ? " (not committed)" : ""}`;
+}
+
 // Shows the editor slot button ({ label, onClick }), or removes it (null).
+// A new slot starts clean.
 export function setEditorButton(slot) {
   editorSlot = slot;
+  editorDirty = false;
   editorBtn?.remove();
   editorBtn = null;
   if (slot) renderEditorButton();
@@ -111,4 +119,9 @@ export function setEditorButton(slot) {
 export function setEditorButtonActive(active) {
   editorActive = active;
   editorBtn?.classList.toggle("active", active);
+}
+
+export function setEditorButtonDirty(dirty) {
+  editorDirty = dirty;
+  if (editorBtn) showEditorDirty();
 }

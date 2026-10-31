@@ -1,4 +1,55 @@
+import { blobPatternFor, editorUrlFor, validateMetabrowseUrl } from "./veditor-launch.js";
+
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+
+// --- Edit in veditor (page context menu on GitHub file pages) ---
+// Shown only while barouse_config.metabrowse_url is set. Menus persist across
+// service-worker restarts, so they're rebuilt on install, on browser start and
+// when the config changes, never on every wake.
+
+const VEDITOR_MENU = "veditor-edit";
+const VEDITOR_MENU_WINDOW = "veditor-edit-window";
+
+async function getMetabrowseUrl() {
+  const { barouse_config: cfg } = await chrome.storage.local.get("barouse_config");
+  const url = cfg?.metabrowse_url;
+  return url && !validateMetabrowseUrl(url) ? url : null;
+}
+
+async function buildVeditorMenu() {
+  await chrome.contextMenus.removeAll();
+  const metabrowseUrl = await getMetabrowseUrl();
+  if (!metabrowseUrl) return;
+  const common = { contexts: ["page", "selection", "editable"], documentUrlPatterns: [blobPatternFor(metabrowseUrl)] };
+  chrome.contextMenus.create({ id: VEDITOR_MENU, title: "Edit in veditor", ...common });
+  chrome.contextMenus.create({ id: VEDITOR_MENU_WINDOW, parentId: VEDITOR_MENU, title: "Window", ...common });
+}
+
+// One rebuild at a time: overlapping removeAll/create pairs collide on the ids.
+let veditorMenuBuild = Promise.resolve();
+function syncVeditorMenu() {
+  veditorMenuBuild = veditorMenuBuild.then(buildVeditorMenu).catch((err) => {
+    console.error("barouse: veditor menu build failed:", err);
+  });
+}
+
+chrome.runtime.onInstalled.addListener(syncVeditorMenu);
+chrome.runtime.onStartup.addListener(syncVeditorMenu);
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.barouse_config) syncVeditorMenu();
+});
+
+chrome.contextMenus.onClicked.addListener(async (info) => {
+  if (info.menuItemId !== VEDITOR_MENU_WINDOW) return;
+  const metabrowseUrl = await getMetabrowseUrl();
+  const url = metabrowseUrl && editorUrlFor(info.pageUrl, metabrowseUrl);
+  if (!url) {
+    console.warn(`barouse: not an editable file page: ${info.pageUrl}`);
+    return;
+  }
+  // A popup has one history entry, so the editor's :q can close it.
+  chrome.windows.create({ url, type: "popup", width: 1000, height: 800 });
+});
 
 // --- Workspace window title ---
 // Maps windowId → workspaceName in memory for synchronous lookup (no async
